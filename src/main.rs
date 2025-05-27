@@ -1,6 +1,5 @@
 mod apify_call;
 mod gpt;
-mod extractor;
 use anyhow::{Result, Context};
 use std::path::Path;
 use tokio::fs;
