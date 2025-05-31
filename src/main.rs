@@ -3,52 +3,35 @@ mod gpt;
 mod appollo;
 use serde_json::Value;
 
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
-   
-    // TODO: Change this url to a user input
-    let linkedin_url = "https://www.linkedin.com/in/albertomancarella/".to_string();
-    // TODO: Check to see if url is valid
-
-
-    /*❓ Need help understanding API call? 👉 Click me! 🖱️ 
-
-    The "?" are simple shorthand to be:
-
-    match apify_call::run_actor(&linkedin_url).await {
-        Ok(data) => {
-            println!("JSON: {}", serde_json::to_string_pretty(&data)?);
-        }
-        Err(e) => {
-            eprintln!("Error: {}", e);
-        }
-    }
-
-    Ok(())
-    */
-    let apify_json: Value = apify_call::run_actor(&linkedin_url).await?; 
-
+    let linkedin_url = "https://www.linkedin.com/in/jenhsunhuang/".to_string();
+    
+    // Get data
+    let apify_json: Value = apify_call::run_actor(&linkedin_url).await?;
     let apollo_email: String = appollo::get_email_from_linkedin(&linkedin_url).await?;
-
-    let combined_input = format!(
-    "=== LINKEDIN PROFILE DATA ===\n{}\n\n=== VERIFIED EMAIL ===\n{}", 
-    apify_json.to_string(),  // LinkedIn profile from Apify
-    apollo_email             // Email from Apollo
-    );
     
-
-    let gpt_response = gpt::generate_from_gpt("email_prompt.txt", &combined_input).await?;
-
+    if apollo_email.is_empty() {
+        println!("❌ No email found, generating LinkedIn message...");
+        return Ok(());
+    }
     
-    println!("\n=== GENERATED EMAIL ===\n{}", gpt_response.to_string());
-
-    //let test = "mailto:contact@company.com?subject=Job%20Application&body=Hello%2C%0A%0AI%20saw%20your%20job%20posting%20and%20would%20like%20to%20apply.".to_string();
+    // LLM Pipeline
+    println!("🔄 Step 1: Parsing JSON data...");
+    let parsed_data = gpt::generate_from_gpt("llm1_parse_json.txt", &apify_json.to_string()).await?;
+    
+    println!("🔄 Step 2: Creating strategy...");
+    let strategy = gpt::generate_from_gpt("llm2_summarize_info.txt", &parsed_data).await?;
+    
+    println!("🔄 Step 3: Composing letter...");
+    let letter_input = format!("{}\n\nVERIFIED EMAIL: {}", strategy, apollo_email);
+    let letter = gpt::generate_from_gpt("llm3_compose_letter.txt", &letter_input).await?;
+    
+    println!("🔄 Step 4: Adding personality and formatting mailto...");
+    let mailto_input = format!("{}\n\nVERIFIED EMAIL: {}", letter, apollo_email);
+    let final_mailto = gpt::generate_from_gpt("llm4_add_personality_mailto.txt", &mailto_input).await?;
+    
+    println!("\n🎉 FINAL RESULT:\n{}", final_mailto);
+    
     Ok(())
-
-
-    //TODO: Check emails if none, then show it cant find an email and then tailor a linkedin message
-
-
-
 }
