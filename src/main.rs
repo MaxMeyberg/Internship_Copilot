@@ -1,8 +1,6 @@
 mod apify_call;
 mod gpt;
-use anyhow::{Result, Context};
-use std::path::Path;
-use tokio::fs;
+use serde_json::Value;
 
 
 #[tokio::main]
@@ -10,7 +8,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
 
    
     // TODO: Change this url to a user input
-    let linkedin_url = "https://www.linkedin.com/in/jmartling/".to_string();
+    let linkedin_url = "https://www.linkedin.com/in/williamhgates/".to_string();
     // TODO: Check to see if url is valid
 
 
@@ -29,19 +27,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
 
     Ok(())
     */
-    let apify_data = apify_call::run_actor(&linkedin_url).await?;
+    let json: Value = apify_call::run_actor(&linkedin_url).await?; 
+
     
-    println!("JSON: {}", serde_json::to_string_pretty(&apify_data)?);
-    let json_str = apify_data.to_string();
-    println!("\n→ ProfileInfo: {:#?}", json_str);
-    // get the system prompt from .txt file
-    let system_prompt = fs::read_to_string(Path::new("system_prompt.txt"))
-        .await
-        .context("Failed to read system prompt file")?;
+    
 
-    // FINI
+    // TODO: Parse email from JSON
+    let email = parse_email(&json);
 
-    let gpt_response = gpt::generate_from_gpt(&system_prompt, &json_str).await?;
+    // Check if email is there or not, that determines the type of prompt:
+    let system_prompt = match email{
+        "" => "linkedin_prompt.txt", 
+        _ => "email_prompt.txt"
+    };
+
+    
+
+    let gpt_response = gpt::generate_from_gpt(system_prompt, &json.to_string()).await?;
 
     
     println!("\n=== GENERATED EMAIL ===\n{}", gpt_response.to_string());
@@ -53,5 +55,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     //TODO: Check emails if none, then show it cant find an email and then tailor a linkedin message
 
 
+
+}
+
+///This will get the email from the Json, to see if its theres an email
+fn parse_email(json: &Value) -> &str {
+    
+    let email: Option<&str> = json["email"].as_str(); // Convert Json to Option<&str>
+    let email: &str = email.unwrap_or(""); // Unwrap the Option<&str> to become a &str
+    
+    match email {
+        "" => {
+            println!("❌ No email found - generating LinkedIn message");
+            email
+        },
+        valid_email => {
+            println!("✅ Email found: {}", valid_email);
+            valid_email
+        }
+
+    }
 
 }

@@ -5,9 +5,15 @@ use open_ai::resources::chat::{
     ChatCompletionMessageParam::{System, User},
 };
 use::dotenv::dotenv;
+use anyhow::{Result, Context};
+use std::path::Path;
+use tokio::fs;
 
-pub async fn generate_from_gpt(system_prompt: &str, json_str: &str) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn generate_from_gpt(txt_file: &str, json_str: &str) -> Result<String, Box<dyn std::error::Error>> {
     
+    let system_prompt = fs::read_to_string(Path::new(txt_file))
+        .await
+        .context("Failed to read system prompt file")?;
     
     dotenv().ok(); // load up .env file, same as "load_dotenv()" in python
     // Get the API key and turn it into a string
@@ -19,7 +25,7 @@ pub async fn generate_from_gpt(system_prompt: &str, json_str: &str) -> Result<St
    
     let completion = openai.chat.completions.create(ChatCompletionCreateParams {
         messages: vec![
-            System{ content: system_prompt , name: None },
+            System{ content: &system_prompt , name: None },
             User{ content: Text(json_str), name: None },
         ],
         model: "gpt-4o-mini",
