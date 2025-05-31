@@ -1,14 +1,14 @@
 mod apify_call;
 mod gpt;
+mod appollo;
 use serde_json::Value;
 
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
-
    
     // TODO: Change this url to a user input
-    let linkedin_url = "https://www.linkedin.com/in/williamhgates/".to_string();
+    let linkedin_url = "https://www.linkedin.com/in/albertomancarella/".to_string();
     // TODO: Check to see if url is valid
 
 
@@ -27,23 +27,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
 
     Ok(())
     */
-    let json: Value = apify_call::run_actor(&linkedin_url).await?; 
+    let apify_json: Value = apify_call::run_actor(&linkedin_url).await?; 
 
-    
-    
+    let apollo_email: String = appollo::get_email_from_linkedin(&linkedin_url).await?;
 
-    // TODO: Parse email from JSON
-    let email = parse_email(&json);
-
-    // Check if email is there or not, that determines the type of prompt:
-    let system_prompt = match email{
-        "" => "linkedin_prompt.txt", 
-        _ => "email_prompt.txt"
-    };
-
+    let combined_input = format!(
+    "=== LINKEDIN PROFILE DATA ===\n{}\n\n=== VERIFIED EMAIL ===\n{}", 
+    apify_json.to_string(),  // LinkedIn profile from Apify
+    apollo_email             // Email from Apollo
+    );
     
 
-    let gpt_response = gpt::generate_from_gpt(system_prompt, &json.to_string()).await?;
+    let gpt_response = gpt::generate_from_gpt("email_prompt.txt", &combined_input).await?;
 
     
     println!("\n=== GENERATED EMAIL ===\n{}", gpt_response.to_string());
@@ -55,25 +50,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     //TODO: Check emails if none, then show it cant find an email and then tailor a linkedin message
 
 
-
-}
-
-///This will get the email from the Json, to see if its theres an email
-fn parse_email(json: &Value) -> &str {
-    
-    let email: Option<&str> = json["email"].as_str(); // Convert Json to Option<&str>
-    let email: &str = email.unwrap_or(""); // Unwrap the Option<&str> to become a &str
-    
-    match email {
-        "" => {
-            println!("❌ No email found - generating LinkedIn message");
-            email
-        },
-        valid_email => {
-            println!("✅ Email found: {}", valid_email);
-            valid_email
-        }
-
-    }
 
 }
