@@ -17,8 +17,7 @@ pub async fn get_email_from_linkedin(linkedin_url: &str) -> Result<String, Box<d
     dotenv().ok(); // load up .env file, same as "load_dotenv()" in python
     
     // Get API key from environment variable
-    let api_key = std::env::var("APPOLO_1")
-        .unwrap_or_else(|_| "ZfqWbaK2o1_vADiiy3R6IQ".to_string());
+    let api_key = std::env::var("APPOLO_API_KEY_1").expect("Missing Apollo API key, is it gone?");
     
     // Create HTTP client
     let client = reqwest::Client::new();
@@ -35,7 +34,10 @@ pub async fn get_email_from_linkedin(linkedin_url: &str) -> Result<String, Box<d
     
     // Check if request was successful
     if !response.status().is_success() {
-        println!("❌ Apollo API failed with status: {}", response.status());
+        let status_code = response.status();
+        let error_body = response.text().await?;
+        println!("❌ Apollo API failed with status: {}", status_code);
+        println!("❌ Full error response: {}", error_body);
         return Ok(String::new()); // Return empty string
     }
     

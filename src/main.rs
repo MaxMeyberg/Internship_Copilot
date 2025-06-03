@@ -1,20 +1,25 @@
 mod apify_call;
 mod gpt;
 mod appollo;
+mod lead_iq;
+mod zeliq;
 use serde_json::Value;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
-    let linkedin_url = "https://www.linkedin.com/in/jenhsunhuang/".to_string();
+    let linkedin_url = "https://www.linkedin.com/in/satyanadella/".to_string();
     
     // Get data
-    let apify_json: Value = apify_call::run_actor(&linkedin_url).await?;
-    let apollo_email: String = appollo::get_email_from_linkedin(&linkedin_url).await?;
     
+    let apollo_email: String = zeliq::get_email_from_linkedin(&linkedin_url).await?;
     if apollo_email.is_empty() {
         println!("❌ No email found, generating LinkedIn message...");
         return Ok(());
     }
+
+    let apify_json: Value = apify_call::run_actor(&linkedin_url).await?;
+
+
     
     // LLM Pipeline
     println!("🔄 Step 1: Parsing JSON data...");
