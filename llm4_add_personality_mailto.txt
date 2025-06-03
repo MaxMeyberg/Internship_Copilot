@@ -17,6 +17,7 @@ PERSONALITY ADJUSTMENTS:
 - Add phrases that show curiosity and humility
 - Emphasize learning/mentorship over transactional requests
 - Keep professional but add warmth
+- Stand out and dont sound generic
 
 MAILTO REQUIREMENTS:
 - Format: mailto:EMAIL?subject=SUBJECT&body=BODY
@@ -33,7 +34,7 @@ MAILTO REQUIREMENTS:
 TONE ADJUSTMENTS:
 - "I was really impressed" → "I was genuinely inspired"
 - "Would you be willing" → "I'd be incredibly grateful if you could"
-- Add phrases like "I'm trying to figure out", "I'd love to learn"
+- Add phrases like "I'm trying to figure out", "I'd love to learn", "I am really curious to know"
 - Show vulnerability: "As someone just starting out", "I'm still learning"
 
 OUTPUT ONLY the complete mailto URL - nothing else.

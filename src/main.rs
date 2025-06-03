@@ -1,7 +1,7 @@
 mod apify_call;
 mod gpt;
 mod appollo;
-mod lead_iq;
+mod snov;
 mod zeliq;
 use serde_json::Value;
 
@@ -11,7 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     
     // Get data
     
-    let apollo_email: String = zeliq::get_email_from_linkedin(&linkedin_url).await?;
+    let apollo_email: String = snov::get_email_from_linkedin(&linkedin_url).await?;
     if apollo_email.is_empty() {
         println!("❌ No email found, generating LinkedIn message...");
         return Ok(());
@@ -40,3 +40,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     
     Ok(())
 }
+
+
+// ///Given 2 linkedin URLS, one for me and the other of the person I want, return a outlook link to click and auto-send email
+// fn llm_pipeline(user_url: str, target_url: str) -> String {
+
+//     //Step 1: Extract Data from Apify, for me and target
+
+
+
+// }
