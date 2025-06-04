@@ -1,9 +1,10 @@
 use reqwest;
 use serde_json::Value;
 use std::error::Error;
+use anyhow::{Result, Context, bail}; // Use anyhow instead
 use dotenv::dotenv;
 
-pub async fn get_email_from_linkedin(linkedin_url: &str) -> Result<String, Box<dyn Error>> {
+pub async fn get_email_from_linkedin(linkedin_url: &str) -> Result<String> {
     dotenv().ok(); // Load .env file
     
     // Get API key from environment variable
@@ -32,14 +33,17 @@ pub async fn get_email_from_linkedin(linkedin_url: &str) -> Result<String, Box<d
     if !response.status().is_success() {
         let status_code = response.status();
         let error_body = response.text().await?;
-        println!("❌ Zeliq API failed with status: {}", status_code);
         println!("❌ Full error response: {}", error_body);
-        return Ok(String::new());
+        bail!("Zeliq API request failed with status: {}", status_code);
     }
     
     // Parse JSON response
-    let json: Value = response.json().await?;
+    let json: Value = response.json().await.context("Failed to parse Zeliq response as JSON")?;
     
+    // Print the full JSON response for debugging
+    println!("🔍 Full Zeliq response: {}", serde_json::to_string_pretty(&json).unwrap_or_else(|_| json.to_string()));
+
+
     // Extract the most probable email from the contact object
     if let Some(contact) = json.get("contact") {
         if let Some(most_probable_email) = contact["most_probable_email"].as_str() {
@@ -51,6 +55,6 @@ pub async fn get_email_from_linkedin(linkedin_url: &str) -> Result<String, Box<d
         }
     }
     
-    println!("❌ Zeliq: No email found in response");
-    Ok(String::new())
+    // ✅ Return proper error instead of empty string
+    bail!("❌ Zeliq: No email found in response, ERROR OUT, issue on zeliq.rs");
 }

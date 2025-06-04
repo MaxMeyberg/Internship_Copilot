@@ -21,20 +21,20 @@ REQUIREMENTS:
 - Reference specific details from their background
 - Ask for ADVICE, not jobs directly
 - Mention Summer 2026 timeline naturally
-- Sign with "Max Meyberg"
 - Professional but warm tone
 - Show genuine curiosity about their expertise
 
 EXAMPLE STRUCTURE:
 "Hi [Name],
 
-I came across your LinkedIn and was really impressed by [specific achievement/work]. Your [specific detail about their role/projects] is exactly the kind of [previous work experience/project] I hope to contribute to someday.
+I came across your LinkedIn and it is so cool to see [specific achievement/work]. Your [specific detail about their role/projects] is exactly the kind of [previous work experience/project] I hope to contribute to someday.
 
 I'm a Computer Science student at Stanford and I am really struggling to get my foot in the door when it comes to software engineering. Your background in [their field] and experience at [company] makes you someone I'd love to learn from as I plan for Summer 2026 opportunities.
 
-Would you be willing to share any advice about [specific question based on their expertise]? I'm particularly interested in [relevant area] and would value any insights about [specific topic related to their work].
+Would you be willing to share any advice about [specific question based on their expertise]? 
+
+I'm particularly interested in [relevant area] and would value any insights about [specific topic related to their work].
 
 Thank you for considering my request.
 
 Best regards,
-Max Meyberg"

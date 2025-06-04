@@ -1,8 +1,9 @@
 # Goals Checklist
 
 - [x] WebScraping data from LinkedIn to find emails
+- [x] I lost track, but it works now :D
 
 ## TODO:
 
-- [ ] Update the Apify API to return a tuple of the user's email in the zero index and the whole JSON file as a string in the first index
-- [ ] Add GPT info
+- [] add my own personal data to relate to person
+- [] Why did I do this in rust? To learn :D

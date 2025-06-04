@@ -10,3 +10,11 @@ Cargo.lock
 
 # Ignore .env files
 .env
+
+
+# Ignore JSON data files
+apify_data.json
+*.json
+
+# Ignore Prompts
+*.txt
