@@ -1,7 +1,7 @@
 # Goals Checklist
 
-- [x] WebScraping data from LinkedIn to find emails
-- [x] I lost track, but it works now :D
+- [x] Find Linkedin Data
+- [x] Alot of crazy stuff, so much learning
 
 ## TODO:
 
