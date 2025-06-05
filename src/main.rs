@@ -2,6 +2,7 @@ pub mod apis;
 use apis::{gpt, apify_call, zeliq};
 use serde_json::Value;
 use std::env;
+use std::fs;
 use std::io::{self, Write};
 use anyhow::{Context, Result};
 
@@ -37,8 +38,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     println!("🔄 Step 1: Parsing JSON data...");
     let parsed_data = gpt::generate_from_gpt("llm1_parse_json.txt", &apify_json.to_string()).await?;
     
-    println!("🔄 Step 2: Creating strategy...");
-    let strategy = gpt::generate_from_gpt("llm2_summarize_info.txt", &parsed_data).await?;
+    println!("🔄 Step 2: Creating strategy... How can I relate to this person");
+    let personal_context = fs::read_to_string("personal_context.txt").context("Cant read your personal info file")?;
+    let strategy_input = format!(
+        "TARGET PERSON'S LINKEDIN DATA:\n{}\n\n--- SEPARATOR ---\n\nMY PERSONAL CONTEXT:\n{}", 
+        parsed_data, 
+        personal_context
+    );
+    let strategy = gpt::generate_from_gpt("llm2_summarize_info.txt", &strategy_input).await?;
+
+
     
     println!("🔄 Step 3: Composing letter...");
     let letter_input = format!("{}\n\nVERIFIED EMAIL: {}", strategy, email_adr);

@@ -1,6 +1,5 @@
 use reqwest;
 use serde_json::Value;
-use std::error::Error;
 use anyhow::{Result, Context, bail}; // Use anyhow instead
 use dotenv::dotenv;
 
