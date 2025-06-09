@@ -23,7 +23,9 @@ Takes a LinkedIn URL, gets the person's profile data, finds their email, analyze
 - **LLM3**: Writes the actual email based on connection analysis
 - **LLM4**: Adds personality and converts to mailto URL
 
-## Setup
+## Setup:
+
+- **TBA**
 
 ### Prerequisites
 

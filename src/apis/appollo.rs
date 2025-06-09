@@ -1,10 +1,10 @@
 use reqwest;
 use serde_json::Value;
-use std::error::Error;
-use::dotenv::dotenv;
+use anyhow::{Result, Context, bail};
+use dotenv::dotenv;
 
 //TODO: Cycle through the API keys automatically
-pub async fn get_email_from_linkedin(linkedin_url: &str) -> Result<String, Box<dyn Error>> {
+pub async fn get_email_from_linkedin(linkedin_url: &str) -> Result<String> {
     // URL encode the LinkedIn URL
     let encoded_url = urlencoding::encode(linkedin_url);
     
@@ -14,10 +14,11 @@ pub async fn get_email_from_linkedin(linkedin_url: &str) -> Result<String, Box<d
         encoded_url
     );
 
-    dotenv().ok(); // load up .env file, same as "load_dotenv()" in python
+    dotenv().ok(); // load up .env file
     
-    // Get API key from environment variable
-    let api_key = std::env::var("APPOLO_API_KEY_1").expect("Missing Apollo API key, is it gone?");
+    // ✅ Get API key from environment variable (fixed name)
+    let api_key = std::env::var("APPOLLO_API_KEY")
+        .context("Missing APPOLLO_API_KEY environment variable")?;
     
     // Create HTTP client
     let client = reqwest::Client::new();
@@ -30,19 +31,24 @@ pub async fn get_email_from_linkedin(linkedin_url: &str) -> Result<String, Box<d
         .header("Content-Type", "application/json")
         .header("x-api-key", api_key)
         .send()
-        .await?;
+        .await
+        .context("Failed to send request to Apollo API")?;
     
-    // Check if request was successful
+    // ✅ Return proper error instead of empty string
     if !response.status().is_success() {
         let status_code = response.status();
         let error_body = response.text().await?;
         println!("❌ Apollo API failed with status: {}", status_code);
         println!("❌ Full error response: {}", error_body);
-        return Ok(String::new()); // Return empty string
+        bail!("Apollo API request failed with status: {}", status_code);
     }
     
     // Parse JSON response
-    let json: Value = response.json().await?;
+    let json: Value = response.json().await
+        .context("Failed to parse Apollo response as JSON")?;
+    
+    // Print debug info (matching Zeliq pattern)
+    println!("🔍 Full Apollo response: {}", serde_json::to_string_pretty(&json).unwrap_or_else(|_| json.to_string()));
     
     // Extract email directly
     let email = json["person"]["email"]
@@ -50,8 +56,9 @@ pub async fn get_email_from_linkedin(linkedin_url: &str) -> Result<String, Box<d
         .unwrap_or("");
     
     if email.is_empty() {
+        // ✅ Return proper error instead of empty string
         println!("❌ Apollo: No email found in response");
-        Ok(String::new())
+        bail!("❌ Apollo: No email found in response, ERROR OUT, issue on appollo.rs");
     } else {
         println!("✅ Apollo: Email found -> {}", email);
         Ok(email.to_string())

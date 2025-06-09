@@ -1,10 +1,11 @@
 pub mod apis;
-use apis::{gpt, apify_call, zeliq};
+use apis::{gpt, apify_call, zeliq, appollo};
 use serde_json::Value;
 use std::env;
 use std::fs;
 use std::io::{self, Write};
 use anyhow::{Context, Result};
+
 
 #[tokio::main]
 
@@ -25,10 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
         }
     };
     //----------
-
-    // TODO: Add in personal linkedin to ad on with 
-    
-    // Get data
+    // Get the email to send to
     let email_adr: String = get_email(&linkedin_url).await?;
 
     let apify_json: Value = apify_call::run_actor(&linkedin_url).await?;
@@ -46,8 +44,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     );
     let strategy = gpt::generate_from_gpt("llm2_summarize_info.txt", &strategy_input).await?;
 
-
-    
     println!("🔄 Step 3: Composing letter...");
     let letter_input = format!("{}\n\nVERIFIED EMAIL: {}", strategy, email_adr);
     let letter = gpt::generate_from_gpt("llm3_compose_letter.txt", &letter_input).await?;
@@ -63,6 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
 
 
 // Allows you to get email, either manually or via Zeliq
+// TODO: Create better emails, the first part sounds weird, too much sycophancy!!!
 async fn get_email(linkedin_url: &str) -> Result<String> {
 
     print!("📧 Type in Email (Press Enter to auto-find): ");
@@ -84,7 +81,7 @@ async fn get_email(linkedin_url: &str) -> Result<String> {
 
     // Auto-find email using Zeliq
     println!("🔄 Auto-finding email...");
-    let found_email = zeliq::get_email_from_linkedin(&linkedin_url).await?;
+    let found_email = appollo::get_email_from_linkedin(&linkedin_url).await?;
 
 
     if found_email.is_empty(){
