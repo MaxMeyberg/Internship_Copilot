@@ -4,7 +4,7 @@ use anyhow::{Result, Context, bail};
 use dotenv::dotenv;
 
 //TODO: Cycle through the API keys automatically
-pub async fn get_email_from_linkedin(linkedin_url: &str) -> Result<String> {
+pub async fn find_email(linkedin_url: &str) -> Result<String> {
     // URL encode the LinkedIn URL
     let encoded_url = urlencoding::encode(linkedin_url);
     

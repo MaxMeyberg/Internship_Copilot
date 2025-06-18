@@ -204,9 +204,9 @@ pub async fn run_actor(profile_url: &str) -> Result<serde_json::Value> {
             
             // Return the *raw* first item (no field extraction)
             if let Some(first) = items.into_iter().next() {
-                return Ok(first);
+                Ok(first)
             } else {
-                return Err(anyhow::anyhow!("Dataset is empty"));
+                Err(anyhow::anyhow!("Dataset is empty"))
             }
         }
         None => return Err(anyhow::anyhow!("Dataset ID not found")),

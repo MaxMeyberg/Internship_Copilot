@@ -81,7 +81,7 @@ async fn get_email(linkedin_url: &str) -> Result<String> {
 
     // Auto-find email using Zeliq
     println!("🔄 Auto-finding email...");
-    let found_email = appollo::get_email_from_linkedin(&linkedin_url).await?;
+    let found_email = appollo::find_email(&linkedin_url).await?;
 
 
     if found_email.is_empty(){

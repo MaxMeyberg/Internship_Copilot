@@ -3,7 +3,7 @@ use serde_json::Value;
 use anyhow::{Result, Context, bail}; // Use anyhow instead
 use dotenv::dotenv;
 
-pub async fn get_email_from_linkedin(linkedin_url: &str) -> Result<String> {
+pub async fn find_email(linkedin_url: &str) -> Result<String> {
     dotenv().ok(); // Load .env file
     
     // Get API key from environment variable
