@@ -17,7 +17,6 @@ impl EmailAPI{
             EmailAPI::Appollo => appollo::find_email(&linkedin_url).await?,
             EmailAPI::Zeliq => zeliq::find_email(&linkedin_url).await?,
             _ => anyhow::bail!("boi, you need an Appollo"),
-             
         }
     }
 }
@@ -60,6 +59,7 @@ impl InternCopilot {
         let json: serde_json::Value = apify_result.context("RIP, Apify had an error getting Json datat, from llm_calls.rs")?;
 
         // LLM PIPELINE TIME
+
        
 
         /* TODO: Read me, written on (6/16/2025)

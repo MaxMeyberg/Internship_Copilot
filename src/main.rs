@@ -1,10 +1,13 @@
 pub mod apis;
 use apis::{gpt, apify_call, zeliq, appollo};
-use serde_json::Value;
+use serde_json::{Value};
+use serde_json::to_string_pretty;
 use std::env;
 use std::fs;
 use std::io::{self, Write};
 use anyhow::{Context, Result};
+use colored::*;
+use std::collections::HashMap; // for parsing
 
 
 #[tokio::main]
@@ -16,7 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let args: Vec<String> = env::args().collect();
     
     // Check if LinkedIn URL was provided
-    // Check if LinkedIn URL was provided using match
+    // TODO: This feels like bloat code
     let linkedin_url = match args.get(1) {
         Some(url) => url.clone(),
         None => {
@@ -30,10 +33,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let email_adr: String = get_email(&linkedin_url).await?;
 
     let apify_json: Value = apify_call::run_actor(&linkedin_url).await?;
+    
+    // let experiences = &apify_json.get("experiences");
+    // println!("{:?}", experiences);
 
+    let parsed = parse_json(&apify_json);
+    
     // LLM Pipeline
     println!("🔄 Step 1: Parsing JSON data...");
-    let parsed_data = gpt::generate_from_gpt("llm1_parse_json.txt", &apify_json.to_string()).await?;
+    let parsed_data = gpt::generate_from_gpt("llm1_parse_json.txt", &parsed).await?;
     
     println!("🔄 Step 2: Creating strategy... How can I relate to this person");
     let personal_context = fs::read_to_string("personal_context.txt").context("Cant read your personal info file")?;
@@ -89,4 +97,49 @@ async fn get_email(linkedin_url: &str) -> Result<String> {
     }
     Ok(found_email)
 
+}
+
+
+//TODO: add this in a seperate fle and folder, call the folder "tools"
+fn parse_json(apify_json: &Value) -> String {
+    let mut dic = HashMap::new();
+    let first_name =  &apify_json.get("firstName").and_then(|x| x.as_str()).unwrap_or("");
+    let last_name =  &apify_json.get("lastName").and_then(|x| x.as_str()).unwrap_or("");
+    dic.insert("firstName".to_string(), first_name.to_string());
+    dic.insert("lastName".to_string(), last_name.to_string());
+    
+    let email = &apify_json.get("about").and_then(|x| x.as_str()).unwrap_or("");
+    let company = &apify_json.get("companyName").and_then(|x| x.as_str()).unwrap_or("");
+    dic.insert("email".to_string(), email.to_string());
+    dic.insert("company".to_string(), company.to_string());
+
+    // Experiences is pain to parse, id compress this for your sanity
+    if let Some(experiences) = apify_json.get("experiences").and_then(|x| x.as_array()) { // get list of expeirnces, JSON is messy atm
+        let mut count = 1; // used for new keys on each experience
+        for exp in experiences {
+            if let Some(subs) = exp.get("subComponents").and_then(|x| x.as_array()) { // look at subcomponents
+                for sub in subs { // loop each subcomponent
+                    let title = sub.get("title").and_then(|v| v.as_str()).unwrap_or("");
+                    // Join all "text" fields in the "description" array
+                    let description = sub.get("description")
+                        .and_then(|desc_arr| desc_arr.as_array())
+                        .map(|arr| {
+                            arr.iter()
+                                .filter_map(|d| d.get("text").and_then(|t| t.as_str())) // Tries to get each "text" in the json to convert to a &str so it can be copied down
+                                .collect::<Vec<_>>() // turn all strings into a vector
+                                .join(" ")
+                        }) // combines the JSON Mess into a string thats readable
+                        .unwrap_or_default(); // confirms if value exists or not for error handling
+                    let combined = format!("{}: {}", title, description);
+                    let key = format!("experience{}", count);
+                    dic.insert(key, combined);
+                    count += 1;
+                }
+            }
+        }
+    }
+    let res = serde_json::to_string_pretty(&dic).unwrap_or_default();
+
+    //TODO: Add in 
+    res
 }
