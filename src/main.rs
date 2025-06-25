@@ -1,20 +1,22 @@
 pub mod apis;
 use apis::{gpt, apify_call, zeliq, appollo};
+pub mod pipeline;
+use pipeline::{parsing};
 use serde_json::{Value};
 use std::env;
 use std::fs;
 use std::io::{self, Write};
 use anyhow::{Context, Result}; // for erro rhandling
-use std::collections::HashMap; // for parsing
+
 
 #[tokio::main]
 
 
 
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
-    //----------
+    //get terminal inputs
     let args: Vec<String> = env::args().collect();
-    
+
     // Check if LinkedIn URL was provided
     // TODO: This feels like bloat code
     let linkedin_url = match args.get(1) {
@@ -34,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     // let experiences = &apify_json.get("experiences");
     // println!("{:?}", experiences);
 
-    let parsed = parse_json(&apify_json);
+    let parsed = parsing::apify_json(&apify_json);
     
     // LLM Pipeline
     println!("🔄 Step 1: Parsing JSON data...");
@@ -70,7 +72,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
 
 
 // Allows you to get email, either manually or via Zeliq
-// TODO: Create better emails, the first part sounds weird, too much sycophancy!!!
 async fn get_email(linkedin_url: &str) -> Result<String> {
 
     print!("📧 Type in Email (Press Enter to auto-find): ");
@@ -102,7 +103,7 @@ async fn get_email(linkedin_url: &str) -> Result<String> {
 
 }
 
-
+/* 
 //TODO: add this in a seperate fle and folder, call the folder "tools"
 fn parse_json(apify_json: &Value) -> String {
     let mut dic = HashMap::new();
@@ -146,3 +147,5 @@ fn parse_json(apify_json: &Value) -> String {
     //TODO: Add in 
     res
 }
+
+    */
