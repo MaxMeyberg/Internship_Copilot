@@ -1,14 +1,11 @@
 pub mod apis;
 use apis::{gpt, apify_call, zeliq, appollo};
 use serde_json::{Value};
-use serde_json::to_string_pretty;
 use std::env;
 use std::fs;
 use std::io::{self, Write};
-use anyhow::{Context, Result};
-use colored::*;
+use anyhow::{Context, Result}; // for erro rhandling
 use std::collections::HashMap; // for parsing
-
 
 #[tokio::main]
 
@@ -56,9 +53,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let letter_input = format!("{}\n\nVERIFIED EMAIL: {}", strategy, email_adr);
     let letter = gpt::generate_from_gpt("llm3_compose_letter.txt", &letter_input).await?;
 
-    println!("🔄 Step 4: Adding personality and formatting mailto...");
-    let mailto_input = format!("{}\n\nVERIFIED EMAIL: {}", letter, email_adr);
-    let final_mailto = gpt::generate_from_gpt("llm4_add_personality_mailto.txt", &mailto_input).await?;
+    println!("🔄 Step 4: Polishing Letter");
+    let polished_input = format!("{}\n\nVERIFIED EMAIL: {}", letter, email_adr);
+    let polished = gpt::generate_from_gpt("llm4_polish_and_shorten.txt", &polished_input).await?;
+
+
+    println!("🔄 Step 5: Adding personality and formatting mailto...");
+    let mailto_input = format!("{}\n\nVERIFIED EMAIL: {}", polished, email_adr);
+    let final_mailto = gpt::generate_from_gpt("llm5_add_personality_mailto.txt", &mailto_input).await?;
+
     
     println!("\n🎉 FINAL RESULT:\n{}", final_mailto);
     
